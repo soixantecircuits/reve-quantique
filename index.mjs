@@ -5,13 +5,13 @@ import { map } from 'map-number'
 import Koa from 'koa'
 import Router from '@koa/router'
 
+import MotorHat from 'motor-hat'
+
 const wlan0Interface = address.interface('IPv4', 'wlan0')
+const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
 
-// import MotorHat from 'motor-hat'
-// const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
-
-const MotorHat = null
-const motorHat = null
+// const MotorHat = null
+// const motorHat = null
 
 let OSCOpen = false
 let OSCTimeLastReceive = Date.now()
