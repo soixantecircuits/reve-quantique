@@ -139,7 +139,7 @@ const OSCReceiving = () => {
             direction = 'back'
           } else if (mappedValue > 0.50) {
             direction = 'fwd'
-          } else if (mappedValue === 0.50) {
+          } else if (Number(mappedValue.toFixed(2)) === 0.50) {
             motorHat.dcs[0].stopSync()
           }
           motorHat.dcs[0].runSync(direction)
@@ -149,7 +149,7 @@ const OSCReceiving = () => {
           } else if (mappedValue > 0.50) {
             direction = 'fwd'
           } else if (mappedValue === 0.50) {
-            direction = stop
+            direction = 'stop'
           }
           console.log(`Motor not available, should set speed to ${motorSpeed} in ${direction}`)
         }
