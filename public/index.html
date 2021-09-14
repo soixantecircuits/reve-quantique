@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reve quantique</title>
+  <style>
+    h1 {
+      text-transform: uppercase;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Rêve quantique</h1>
+  <p>Motor speed:</p>
+<div>
+  <input type="range" id="speed" name="speed"
+         min="0" max="1.0" step="0.01">
+  <label for="volume">speed:</label>
+  <output id="speedLabel"></output>
+</div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    let speedInput = document.querySelector('input#speed')
+    let speedLabel = document.querySelector('output#speedLabel');
+    speedInput.addEventListener('input', function () {
+      speedLabel.innerHTML = speedInput.value;
+      socket.emit('speed', Number(speedInput.value))
+    }, false);
+    const socket = io()
+  </script>
+</body>
+</html>

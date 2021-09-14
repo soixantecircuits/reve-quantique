@@ -4,14 +4,22 @@ import osc from 'osc'
 import { map } from 'map-number'
 import Koa from 'koa'
 import Router from '@koa/router'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
+import serve from 'koa-static-server'
+import path from 'path'
 
-import MotorHat from 'motor-hat'
-const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
+// import MotorHat from 'motor-hat'
+// const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
 const wlan0Interface = address.interface('IPv4', 'wlan0')
-
-// const MotorHat = null
-// const motorHat = null
-
+const __dirname = path.resolve()
+const publicPath = `${__dirname}/public/`
+const MotorHat = null
+const motorHat = null
+const staticOptions = {
+  rootDir: publicPath,
+  rootPath: '/'
+}
 let OSCOpen = false
 let OSCTimeLastReceive = Date.now()
 let OSCLastError = ''
@@ -44,7 +52,7 @@ router.get('/status/motor', (ctx, next) => {
 app
   .use(router.routes())
   .use(router.allowedMethods())
-
+app.use(serve(staticOptions))
 app.use(async (ctx, next) => {
   if (parseInt(ctx.status) === 404) {
     ctx.status = 404
@@ -62,6 +70,19 @@ app.use(async (ctx, next) => {
     }
   }
 })
+
+
+const httpServer = createServer(app.callback())
+const options = {}
+const io = new Server(httpServer, options)
+
+io.on('connection', socket => { 
+  console.log('a connection occured')
+  socket.on('speed', (arg) => {
+    adjustSpeed(arg)
+  })  
+})
+
 
 const average = values => {
   if (values.length) {
@@ -85,6 +106,43 @@ const waveValueThreshold = (listOfData, min, max) => {
 
 const OSCReceiving = () => {
   return (Date.now() - OSCTimeLastReceive) < 150
+}
+
+const adjustSpeed = (speed) => {
+  console.log(speed)
+  // HERE WE SET THE MOTOR SPEED
+  // WE CEIL THE VALUE TO 2 number behind the dot : 0.6581954509019852 become 0.66
+  //
+  let motorSpeed = Number((speed * 10).toFixed(2))
+  if (motorHat) {
+    if (speed < 0.50) {
+      motorSpeed = Number(((0.5 - speed) * 10).toFixed(2))
+      motorDirection = 'back'
+      motorHat.dcs[0].setSpeedSync(motorSpeed)
+      motorHat.dcs[0].runSync(motorDirection)
+    } else if (speed > 0.50) {
+      motorSpeed = Number(((speed - 0.5) * 10).toFixed(2))
+      motorDirection = 'fwd'
+      motorHat.dcs[0].setSpeedSync(motorSpeed)
+      motorHat.dcs[0].runSync(motorDirection)
+    } else if (speed === 0.50) {
+      console.log('!! STOP MOTOR !!')
+      motorHat.dcs[0].stopSync()
+    }
+    console.log(`controlling motor: ${motorDirection}, speed: ${motorSpeed}`)
+  } else {
+    // THIS IS FOR DEBUG PURPOSE ONLY
+    if (speed < 0.50) {
+      motorSpeed = Number(((0.5 - speed) * 10).toFixed(2))
+      motorDirection = 'back'
+    } else if (speed > 0.50) {
+      motorSpeed = Number(((speed - 0.5) * 10).toFixed(2))
+      motorDirection = 'fwd'
+    } else if (speed === 0.50) {
+      motorDirection = 'stop'
+    }
+    console.log(`Motor not available, should set speed to ${motorSpeed} in ${motorDirection}`)
+  }
 }
 
 ;(async () => {
@@ -128,36 +186,7 @@ const OSCReceiving = () => {
         const mappedValue = map(waveValueAverage, -1, 1, 0, 1)
         console.log(`MAPPED - ${waveName}: `, mappedValue)
         console.log(`---`)
-        // HERE WE SET THE MOTOR SPEED
-        // WE CEIL THE VALUE TO 2 number behind the dot : 0.6581954509019852 become 0.66
-        //
-        motorSpeed = Number((mappedValue * 10).toFixed(2))
-        motorDirection = 'back'
-        if (motorHat) {
-          if (mappedValue < 0.50) {
-            motorDirection = 'back'
-            motorHat.dcs[0].setSpeedSync(motorSpeed)
-            motorHat.dcs[0].runSync(motorDirection)
-          } else if (mappedValue > 0.50) {
-            motorDirection = 'fwd'
-            motorHat.dcs[0].setSpeedSync(motorSpeed)
-            motorHat.dcs[0].runSync(motorDirection)
-          } else if (mappedValue === 0.50) {
-            console.log('!! STOP MOTOR !!')
-            motorHat.dcs[0].stopSync()
-          }
-          console.log(`controlling motor: ${motorDirection}, speed: ${motorSpeed}`)
-        } else {
-          // THIS IS FOR DEBUG PURPOSE ONLY
-          if (mappedValue < 0.50) {
-            motorDirection = 'back'
-          } else if (mappedValue > 0.50) {
-            motorDirection = 'fwd'
-          } else if (mappedValue === 0.50) {
-            motorDirection = 'stop'
-          }
-          console.log(`Motor not available, should set speed to ${motorSpeed} in ${motorDirection}`)
-        }
+        adjustSpeed(mappedValue)
       }
     }
   })
@@ -186,8 +215,7 @@ const OSCReceiving = () => {
       }
     }
   })
-
-  app.listen(httpPort)
+  httpServer.listen(httpPort)
   console.log(`http status running on : http://${localIp}:${httpPort}`)
 })()
 process.stdin.resume()
