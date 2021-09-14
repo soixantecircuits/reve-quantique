@@ -1,14 +1,17 @@
 import internalIp from 'internal-ip'
+import address from 'address'
 import osc from 'osc'
 import { map } from 'map-number'
 import Koa from 'koa'
 import Router from '@koa/router'
 
-import MotorHat from 'motor-hat'
-const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
+const wlan0Interface = address.interface('IPv4', 'wlan0')
 
-// let MotorHat = null
-// let motorHat = null
+// import MotorHat from 'motor-hat'
+// const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
+
+const MotorHat = null
+const motorHat = null
 
 let OSCOpen = false
 let OSCTimeLastReceive = Date.now()
@@ -84,7 +87,11 @@ const OSCReceiving = () => {
 }
 
 ;(async () => {
-  localIp = await internalIp.v4()
+  if (wlan0Interface) {
+    localIp = wlan0Interface.address
+  } else {
+    localIp = await internalIp.v4()
+  }
   var udpPort = new osc.UDPPort({
     localAddress: localIp,
     localPort: OSCport,
