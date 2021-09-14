@@ -18,6 +18,7 @@ let OSCTimeLastReceive = Date.now()
 let OSCLastError = ''
 let localIp = ''
 let motorSpeed = ''
+let motorDirection = ''
 const httpPort = 8090
 const OSCport = 57121
 const mainWave = 'delta'
@@ -36,6 +37,7 @@ router.get('/status/osc', (ctx, next) => {
 router.get('/status/motor', (ctx, next) => {
   ctx.body = {
     motorSpeed,
+    motorDirection,
     motorHat
   }
 })
@@ -131,27 +133,30 @@ const OSCReceiving = () => {
         // WE CEIL THE VALUE TO 2 number behind the dot : 0.6581954509019852 become 0.66
         //
         motorSpeed = Number((mappedValue * 10).toFixed(2))
-        let direction = 'back'
+        motorDirection = 'back'
         if (motorHat) {
-          console.log('controlling motor')
-          motorHat.dcs[0].setSpeedSync(motorSpeed)
           if (mappedValue < 0.50) {
-            direction = 'back'
+            motorDirection = 'back'
+            motorHat.dcs[0].setSpeedSync(motorSpeed)
+            motorHat.dcs[0].runSync(motorDirection)
           } else if (mappedValue > 0.50) {
-            direction = 'fwd'
-          } else if (Number(mappedValue.toFixed(2)) === 0.50) {
+            motorDirection = 'fwd'
+            motorHat.dcs[0].setSpeedSync(motorSpeed)
+            motorHat.dcs[0].runSync(motorDirection)
+          } else if (mappedValue === 0.50) {
+            console.log('!! STOP MOTOR !!')
             motorHat.dcs[0].stopSync()
           }
-          motorHat.dcs[0].runSync(direction)
+          console.log(`controlling motor: ${motorDirection}, speed: ${motorSpeed}`)
         } else {
           if (mappedValue < 0.50) {
-            direction = 'back'
+            motorDirection = 'back'
           } else if (mappedValue > 0.50) {
-            direction = 'fwd'
+            motorDirection = 'fwd'
           } else if (mappedValue === 0.50) {
-            direction = 'stop'
+            motorDirection = 'stop'
           }
-          console.log(`Motor not available, should set speed to ${motorSpeed} in ${direction}`)
+          console.log(`Motor not available, should set speed to ${motorSpeed} in ${motorDirection}`)
         }
       }
     }
