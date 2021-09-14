@@ -1,18 +1,14 @@
 import internalIp from 'internal-ip'
 import osc from 'osc'
 import { map } from 'map-number'
-import isPi from 'detect-rpi'
 import Koa from 'koa'
 import Router from '@koa/router'
 
-let MotorHat = null
-let motorHat = null
-;(async () => {
-  if (isPi()) {
-    MotorHat = await import('motor-hat')
-    motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
-  }
-})();
+import MotorHat from 'motor-hat'
+const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
+
+// let MotorHat = null
+// let motorHat = null
 
 let OSCOpen = false
 let OSCTimeLastReceive = Date.now()
@@ -46,10 +42,10 @@ app
   .use(router.allowedMethods())
 
 app.use(async (ctx, next) => {
-  if(parseInt(ctx.status) === 404){
+  if (parseInt(ctx.status) === 404) {
     ctx.status = 404
     ctx.body = {
-      msg:'emmmmmmm, seems 404',
+      msg: 'emmmmmmm, seems 404',
       routes: {
         osc: `http://${localIp}:${httpPort}/status/osc`,
         motor: `http://${localIp}:${httpPort}/status/motor`
@@ -84,7 +80,7 @@ const waveValueThreshold = (listOfData, min, max) => {
 }
 
 const OSCReceiving = () => {
-  return (Date.now() - OSCTimeLastReceive) < 150 
+  return (Date.now() - OSCTimeLastReceive) < 150
 }
 
 ;(async () => {
@@ -158,7 +154,7 @@ const OSCReceiving = () => {
     OSCOpen = true
   })
   udpPort.on('error', function (error) {
-    console.log("An error occurred: ", error.message)
+    console.log('An error occurred: ', error.message)
     OSCLastError = error.message
   })
   // Open the socket.
@@ -167,9 +163,9 @@ const OSCReceiving = () => {
   // response
   app.use(ctx => {
     ctx.body = {
-      msg:'Hello Reve quantique',
+      msg: 'Hello Reve quantique',
       routes: {
-        osc: `http://${localIp}:${httpPort}/status/osc`,
+        osc: `http://${localIp}:${httpPort}/status/osc`
       },
       conf: {
         localIp,
