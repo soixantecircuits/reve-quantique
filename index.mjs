@@ -49,7 +49,7 @@ app.use(async (ctx, next) => {
   if (parseInt(ctx.status) === 404) {
     ctx.status = 404
     ctx.body = {
-      msg: 'emmmmmmm, seems 404',
+      msg: 'Looks like 404',
       routes: {
         osc: `http://${localIp}:${httpPort}/status/osc`,
         motor: `http://${localIp}:${httpPort}/status/motor`
@@ -148,6 +148,7 @@ const OSCReceiving = () => {
           }
           console.log(`controlling motor: ${motorDirection}, speed: ${motorSpeed}`)
         } else {
+          // THIS IS FOR DEBUG PURPOSE ONLY
           if (mappedValue < 0.50) {
             motorDirection = 'back'
           } else if (mappedValue > 0.50) {
