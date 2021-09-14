@@ -6,9 +6,8 @@ import Koa from 'koa'
 import Router from '@koa/router'
 
 import MotorHat from 'motor-hat'
-
-const wlan0Interface = address.interface('IPv4', 'wlan0')
 const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
+const wlan0Interface = address.interface('IPv4', 'wlan0')
 
 // const MotorHat = null
 // const motorHat = null
@@ -190,3 +189,25 @@ const OSCReceiving = () => {
   app.listen(httpPort)
   console.log(`http status running on : http://${localIp}:${httpPort}`)
 })()
+process.stdin.resume()
+
+function exitHandler (options, exitCode) {
+  if (motorHat) {
+    console.log('reve quantique stop')
+    motorHat.dcs[0].stopSync()
+  } else {
+    console.log('reve quantique stop / no motor')
+  }
+  process.exit()
+}
+// do something when app is closing
+process.on('exit', exitHandler.bind(null, { cleanup: true }))
+// catches ctrl+c event
+process.on('SIGINT', exitHandler.bind(null, { exit: true }))
+
+// catches "kill pid" (for example: nodemon restart)
+process.on('SIGUSR1', exitHandler.bind(null, { exit: true }))
+process.on('SIGUSR2', exitHandler.bind(null, { exit: true }))
+
+// catches uncaught exceptions
+process.on('uncaughtException', exitHandler.bind(null, { exit: true }))
