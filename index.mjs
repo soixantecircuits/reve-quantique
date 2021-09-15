@@ -79,7 +79,7 @@ const io = new Server(httpServer, options)
 io.on('connection', socket => { 
   console.log('a connection occured')
   socket.on('speed', (arg) => {
-    adjustSpeed(arg)
+    adjustSpeed(arg.step, arg.factor)
   })  
 })
 
@@ -108,20 +108,22 @@ const OSCReceiving = () => {
   return (Date.now() - OSCTimeLastReceive) < 150
 }
 
-const adjustSpeed = (speed) => {
+const adjustSpeed = (speed, speedFactor = 10) => {
   console.log(speed)
   // HERE WE SET THE MOTOR SPEED
   // WE CEIL THE VALUE TO 2 number behind the dot : 0.6581954509019852 become 0.66
   //
-  let motorSpeed = Number((speed * 10).toFixed(2))
+  let motorSpeed = Number((speed * speedFactor).toFixed(2))
   if (motorHat) {
     if (speed < 0.50) {
-      motorSpeed = Number(((0.5 - speed) * 10).toFixed(2))
+      motorSpeed = Number(((0.5 - speed) * speedFactor).toFixed(2))
       motorDirection = 'back'
+      motorSpeed = map(motorSpeed, 0, 0.5*speedFactor, 0, 1*speedFactor)
       motorHat.dcs[0].setSpeedSync(motorSpeed)
       motorHat.dcs[0].runSync(motorDirection)
     } else if (speed > 0.50) {
-      motorSpeed = Number(((speed - 0.5) * 10).toFixed(2))
+      motorSpeed = Number(((speed - 0.5) * speedFactor).toFixed(2))
+      motorSpeed = map(motorSpeed, 0, 0.5*speedFactor, 0, 1*speedFactor)
       motorDirection = 'fwd'
       motorHat.dcs[0].setSpeedSync(motorSpeed)
       motorHat.dcs[0].runSync(motorDirection)
@@ -133,14 +135,15 @@ const adjustSpeed = (speed) => {
   } else {
     // THIS IS FOR DEBUG PURPOSE ONLY
     if (speed < 0.50) {
-      motorSpeed = Number(((0.5 - speed) * 10).toFixed(2))
+      motorSpeed = Number(((0.5 - speed) * speedFactor).toFixed(2))
       motorDirection = 'back'
     } else if (speed > 0.50) {
-      motorSpeed = Number(((speed - 0.5) * 10).toFixed(2))
+      motorSpeed = Number(((speed - 0.5) * speedFactor).toFixed(2))
       motorDirection = 'fwd'
     } else if (speed === 0.50) {
       motorDirection = 'stop'
     }
+    motorSpeed = map(motorSpeed, 0, 0.5*speedFactor, 0, 1*speedFactor)
     console.log(`Motor not available, should set speed to ${motorSpeed} in ${motorDirection}`)
   }
 }

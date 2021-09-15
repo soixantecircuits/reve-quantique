@@ -19,10 +19,16 @@
   <h1>Rêve quantique</h1>
   <p>Motor speed:</p>
 <div>
+  <h2>Gain 10</h2>
   <input type="range" id="speed" name="speed"
-         min="0" max="1.0" step="0.01">
+         min="0" max="1.0" step="0.001">
   <label for="volume">speed:</label>
   <output id="speedLabel"></output>
+  <h2>Gain 100</h2>
+  <input type="range" id="speedFast" name="speedFast"
+         min="0" max="1.0" step="0.001">
+  <label for="volume">speed:</label>
+  <output id="speedFastLabel"></output>
 </div>
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -30,7 +36,19 @@
     let speedLabel = document.querySelector('output#speedLabel');
     speedInput.addEventListener('input', function () {
       speedLabel.innerHTML = speedInput.value;
-      socket.emit('speed', Number(speedInput.value))
+      socket.emit('speed', {
+        step:Number(speedInput.value),
+        factor: 10
+      })
+    }, false);
+    let speedFastInput = document.querySelector('input#speedFast')
+    let speedFastLabel = document.querySelector('output#speedFastLabel');
+    speedFastInput.addEventListener('input', function () {
+      speedFastLabel.innerHTML = speedFastInput.value;
+      socket.emit('speed', {
+        step: Number(speedFastInput.value),
+        factor: 100
+      })
     }, false);
     const socket = io()
   </script>
