@@ -9,13 +9,13 @@ import { Server } from 'socket.io'
 import serve from 'koa-static-server'
 import path from 'path'
 
-// import MotorHat from 'motor-hat'
-// const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
+import MotorHat from 'motor-hat'
+const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
 const wlan0Interface = address.interface('IPv4', 'wlan0')
 const __dirname = path.resolve()
 const publicPath = `${__dirname}/public/`
-const MotorHat = null
-const motorHat = null
+// const MotorHat = null
+// const motorHat = null
 const staticOptions = {
   rootDir: publicPath,
   rootPath: '/'
