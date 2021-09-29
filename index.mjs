@@ -13,52 +13,18 @@ import path from 'path'
 
 const windowSize = 30
 
-const paintings = [{
-  name: 'reve-1',
-  min: -1, 
-  max: -0.8,
-  speed: -20
-}, {
-  name: 'reve-2',
-  min: -0.79, 
-  max: -0.4,
-  speed: -15
-}, {
-  name: 'reve-3',
-  min: -0.39, 
-  max: -0.2,
-  speed: -10
-}, {
-  name: 'reve-4',
-  min: -0.19, 
-  max: -0.1,
-  speed: -5
-}, {
-  name: 'reve-5',
-  min: -0.09, 
-  max: 0.09,
-  speed: 0
-}, {
-  name: 'reve-6',
-  min: 0.1, 
-  max: 0.19,
-  speed: 5
-}, {
-  name: 'reve-7',
-  min: 0.2, 
-  max: 0.39,
-  speed: 10
-}, {
-  name: 'reve-8',
-  min: 0.4, 
-  max: 0.79,
-  speed: 15
-}, {
-  name: 'reve-9',
-  min: 0.8, 
-  max: 1,
-  speed: 20
-}]
+const paintings = [
+{ "name": "reve-minus-5", "min": -1.0, "max": -0.8, "speed": -20 },
+{ "name": "reve-minus-4", "min": -0.85, "max": -0.55, "speed": -11 },
+{ "name": "reve-minus-3", "min": -0.54, "max": -0.4, "speed": 0 },
+{ "name": "reve-minus-2", "min": -0.41, "max": -0.2, "speed": -11 },
+{ "name": "reve-minus-1", "min": -0.25, "max": -0.001, "speed": -9 },
+{ "name": "reve-plus-1", "min": 0.001, "max": 0.25, "speed": 9 },
+{ "name": "reve-plus-2", "min": 0.2, "max": 0.45, "speed": 14 },
+{ "name": "reve-plus-3", "min": 0.4, "max": 0.65, "speed": 16 },
+{ "name": "reve-plus-4", "min": 0.6, "max": 0.85, "speed": 12 },
+{ "name": "reve-plus-5", "min": 0.8, "max": 1.0, "speed": 20 }
+]
 
 import MotorHat from 'motor-hat'
 //const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
@@ -288,14 +254,13 @@ const adjustSpeed = (speed) => {
         const waveValueCutList = waveValueThreshold(waveList, -1, 1)
         // we compute the average 
         const waveValueAverage = average(waveValueCutList)
-        
         // we create a buffer by adding the average value in an special array of a limited window
         BufferWave.push(waveValueAverage)
 
         const SmoothedWave = smoothish(BufferWave.values)
         const SmoothedWave3 = smoothish(BufferWave.values, {radius: 3})
 
-        const waveValueMovingAverage = average(SmoothedWave)
+        const waveValueMovingAverage = average(SmoothedWave3)
 
         //console.log(`RAW - ${waveName}: `, waveList)
         //console.log(`---`)
@@ -307,11 +272,11 @@ const adjustSpeed = (speed) => {
         //console.log(`---`)
         const mappedValue = map(waveValueAverage, -1, 1, 0, 1)
         // const mappedValue = map(waveValueMovingAverage, -1, 1, 0, 1)
-        console.log(`MAPPED - ${waveName}: `, mappedValue)
+        // console.log(`MAPPED - ${waveName}: `, mappedValue)
         console.log(`---`)
         // here instead of calling adjustSpeed you can call paintSpeed() which use the paintings
-        // paintSpeed(waveValueMovingAverage)
-        adjustSpeed(mappedValue)
+         paintSpeed(waveValueMovingAverage)
+        // adjustSpeed(mappedValue)
       }
     }
   })
