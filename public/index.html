@@ -46,7 +46,7 @@
       const response = await ky.post('/uploadFile', {body: formData}).json()
       console.log(response)
       if(response.fileUpload === 'ok') {
-        alert('fichier CSV mis à jour, vérifié ici : http://10.9.8.1/muse/muse.csv')
+        alert('fichier CSV mis à jour, vérifiez ici : http://10.9.8.1:8090/muse/muse.csv')
       } else {
         alert('une erreur s\'est produite.')
       }
