@@ -21,8 +21,8 @@ const windowSize = 30
 // import MotorHat from 'motor-hat'
 // const MotorHat = null
 // const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
-// const motorHat = {}
-const motorHat = null
+ const motorHat = {}
+// const motorHat = null
 const BufferWave = new ArrayLimited(windowSize)
 import {initMotor, setFrequency, setRange, setSpeedSync, runSync, runForward, runBackward, stopSync} from './motorpgpio.mjs'
 const wlan0Interface = address.interface('IPv4', 'wlan0')
