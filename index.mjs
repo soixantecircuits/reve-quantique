@@ -4,30 +4,22 @@ import osc from 'osc'
 import { map } from 'map-number'
 import Koa from 'koa'
 import Router from '@koa/router'
+import mime from 'mime-types'
+import koaBody from 'koa-body'
 import { ArrayLimited } from 'array-limited'
 import smoothish from 'smoothish'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import serve from 'koa-static-server'
+import Papa from 'papaparse'
 import path from 'path'
+import fs from 'fs-extra'
+import settings from 'standard-settings'
 
 const windowSize = 30
 
-const paintings = [
-{ "name": "reve-minus-5", "min": -1.0, "max": -0.8, "speed": -20 },
-{ "name": "reve-minus-4", "min": -0.85, "max": -0.55, "speed": -11 },
-{ "name": "reve-minus-3", "min": -0.54, "max": -0.4, "speed": 0 },
-{ "name": "reve-minus-2", "min": -0.41, "max": -0.2, "speed": -11 },
-{ "name": "reve-minus-1", "min": -0.25, "max": -0.001, "speed": -9 },
-{ "name": "reve-plus-1", "min": 0.001, "max": 0.25, "speed": 9 },
-{ "name": "reve-plus-2", "min": 0.2, "max": 0.45, "speed": 14 },
-{ "name": "reve-plus-3", "min": 0.4, "max": 0.65, "speed": 16 },
-{ "name": "reve-plus-4", "min": 0.6, "max": 0.85, "speed": 12 },
-{ "name": "reve-plus-5", "min": 0.8, "max": 1.0, "speed": 20 }
-]
-
-import MotorHat from 'motor-hat'
-//const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
+// import MotorHat from 'motor-hat'
+// const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
 const motorHat = {}
 const BufferWave = new ArrayLimited(windowSize)
 import {initMotor, setFrequency, setRange, setSpeedSync, runSync, runForward, runBackward, stopSync} from './motorpgpio.mjs'
@@ -40,6 +32,7 @@ const staticOptions = {
   rootDir: publicPath,
   rootPath: '/'
 }
+const paintings = settings.getSettings().paintings
 let OSCOpen = false
 let OSCTimeLastReceive = Date.now()
 let OSCLastError = ''
@@ -51,6 +44,111 @@ const OSCport = 57121
 const mainWave = 'delta'
 const app = new Koa()
 const router = new Router()
+let intervalPlayback
+let rows
+let udpPort
+
+function dateDiff(date1, date2) {
+  return new Date(date1).getTime() - new Date(date2).getTime()
+}
+
+const readRowAndSend = (row) => {
+  udpPort.send({
+    address: '/muse/elements/delta_absolute',
+    args: [
+      { type: 'f', value: row.Delta_TP9 },
+      { type: 'f', value: row.Delta_AF7 },
+      { type: 'f', value: row.Delta_AF8 },
+      { type: 'f', value: row.Delta_TP10 }
+    ]
+  }, localIp, OSCport)
+}
+
+const readAndPrepareRecord = (filePath) => {
+  const content = fs.readFileSync(filePath, "utf8");
+  Papa.parse(content, {
+    skipEmptyLines: true,
+    header: true,
+    complete: (results) => {
+      // console.log('CSV parsed: ', results.errors)
+      rows = results.data
+      let indexRow = 0
+      console.log(rows[rows.length - 1].TimeStamp)
+      console.log(rows[0].TimeStamp)
+      let readingInterval = dateDiff(rows[rows.length - 1].TimeStamp, rows[0].TimeStamp)/rows.length
+      console.log(`Reading interval set to: ${readingInterval}`)
+      clearInterval(intervalPlayback)
+      intervalPlayback = setInterval(() => {
+        if(indexRow < rows.length) {
+          let row = rows[indexRow]
+          console.log(row)
+          if(!row.Elements) {
+            readRowAndSend(row)
+          }
+          indexRow++
+        } else {
+          console.log('--- FINISHED ---')
+          indexRow = 0
+        }
+      }, readingInterval)
+    },
+    error: (errors) => {
+      console.error('CSV parsing failed', errors)
+    }
+  })
+}
+
+const checkFile = (filePath) => {
+  return new Promise((resolve, reject) => {
+    const content = fs.readFileSync(filePath, "utf8");
+    Papa.parse(content, {
+      header: true,
+      complete: (results) => {
+        // console.log('CSV parsed: ', results.errors)
+        rows = results.data
+        if (rows[0].TimeStamp) {
+          resolve(results)
+        } else {
+          reject(new Error('Le fichier ne semble pas correctement formaté'))  
+        }
+      },
+      error: (errors) => {
+        console.error('CSV parsing failed', errors)
+        reject(errors)
+      }
+    })
+  })
+}
+
+router.post('/uploadFile', koaBody({multipart: true, uploadDir: '/tmp'}), async ctx => {
+    try {
+        const {path, name, type} = ctx.request.files.file
+        const fileExtension = mime.extension(type)
+        console.log(`path: ${path}`)
+        console.log(`filename: ${name}`)
+        console.log(`type: ${type}`)
+        console.log(`fileExtension: ${fileExtension}`)
+        if (type === 'text/csv' && await checkFile(path)) {
+          fs.copySync(path, `public/muse/${name}`)
+          fs.copySync(path, `public/muse/muse.csv`)
+          ctx.body = {fileUpload:'ok', url: '/muse/muse.csv', original: `/muse/${name}`}
+          readAndPrepareRecord(path)
+        } else {
+          if (type !== 'text/csv') {
+            console.error('le fichier n\'est pas au bon format')
+            ctx.body = {error: true, message: 'le fichier n\'est pas au bon format, uploadez un CSV'}
+          } else {
+            console.error('le fichier CSV n\'a pas pu être parsé.')
+            ctx.body = {error: true, message: 'le fichier CSV n\'a pas pu être parsé.'}
+          }
+        }
+    } catch(err) {
+        console.log(`error ${err.message}`)
+        ctx.body = {error: true, message: err.message}
+    }
+})
+
+console.log(paintings)
 
 router.get('/status/osc', (ctx, next) => {
   ctx.body = {
@@ -130,6 +228,7 @@ const average = values => {
 }
 
 const wave2Array = waveObject => {
+  console.log(waveObject)
   return waveObject.map(el => {
     return el.value
   })
@@ -227,7 +326,7 @@ const adjustSpeed = (speed) => {
   } else {
     localIp = await internalIp.v4()
   }
-  var udpPort = new osc.UDPPort({
+  udpPort = new osc.UDPPort({
     localAddress: localIp,
     localPort: OSCport,
     metadata: true
@@ -236,7 +335,12 @@ const adjustSpeed = (speed) => {
     console.log('Start Motor control over I2C')
     //motorHat.init()
     // default frequency 100, set to 12500
-    initMotor(23, 24, 25, 12500)
+    try {
+      initMotor(23, 24, 25, 12500)
+    } catch (err) {
+      console.error('An error occured while trying to control the motor')
+      consoele.error(error)
+    }
   } else {
     console.warn('!! no motor available !!')
   }
@@ -249,6 +353,7 @@ const adjustSpeed = (speed) => {
       const waveName = oscMsg.address.split('/').pop().replace('_absolute', '')
       const waveValue = oscMsg.args
       if (oscMsg.address.indexOf(`${mainWave}_absolute`) > 1) {
+        console.log(oscMsg.address)
         const waveList = wave2Array(waveValue)
         // we remove the value which are inferior to -1 and supperior to 1
         const waveValueCutList = waveValueThreshold(waveList, -1, 1)
