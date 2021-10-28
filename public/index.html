@@ -13,18 +13,45 @@
     input {
       width: 100%;
     }
+    #upload {
+      margin-top: 4px;
+      margin-bottom: 10px;
+      padding: 10px;
+    }
+  
   </style>
 </head>
 <body>
   <h1>Rêve quantique</h1>
   <p>Motor speed:</p>
 <div>
+  <label for="file">Choisissez un fichier de configuration:</label>
+
+<input type="file"
+       id="file" name="file"
+       accept="text/csv">
+  <button id="upload">envoyer</button>
+
   <input type="range" id="speed" name="speed"
          min="-30" max="30" step="1">
   <label for="volume">speed:</label>
   <output id="speedLabel"></output>
 </div>
   <script src="/socket.io/socket.io.js"></script>
+  <script type="module">
+    import ky from '/ky.min.js';
+    document.getElementById('upload').onclick = async () => {
+      const formData = new FormData()
+      formData.append('file', document.getElementById('file').files[0])
+      const response = await ky.post('/uploadFile', {body: formData}).json()
+      console.log(response)
+      if(response.fileUpload === 'ok') {
+        alert('fichier CSV mis à jour, vérifié ici : http://10.9.8.1/muse/muse.csv')
+      } else {
+        alert('une erreur s\'est produite.')
+      }
+    }
+  </script>
   <script>
     let speedInput = document.querySelector('input#speed')
     let speedLabel = document.querySelector('output#speedLabel');

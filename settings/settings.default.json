@@ -1,5 +1,5 @@
 {
-  "playback": true,
+  "playback": false,
   "paintings": [
     { "name": "reve-minus-5", "min": -1.0, "max": -0.8, "speed": -20 },
     { "name": "reve-minus-4", "min": -0.85, "max": -0.55, "speed": -11 },

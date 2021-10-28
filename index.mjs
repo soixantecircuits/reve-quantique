@@ -19,15 +19,15 @@ import settings from 'standard-settings'
 const windowSize = 30
 
 // import MotorHat from 'motor-hat'
+// const MotorHat = null
 // const motorHat = MotorHat({ address: 0x60, dcs: ['M1'] })
-const motorHat = {}
+// const motorHat = {}
+const motorHat = null
 const BufferWave = new ArrayLimited(windowSize)
 import {initMotor, setFrequency, setRange, setSpeedSync, runSync, runForward, runBackward, stopSync} from './motorpgpio.mjs'
 const wlan0Interface = address.interface('IPv4', 'wlan0')
 const __dirname = path.resolve()
 const publicPath = `${__dirname}/public/`
-// const MotorHat = null
-// const motorHat = null
 const staticOptions = {
   rootDir: publicPath,
   rootPath: '/'
@@ -64,7 +64,7 @@ const readRowAndSend = (row) => {
   }, localIp, OSCport)
 }
 
-const readAndPrepareRecord = (filePath) => {
+const readAndPlayRecord = (filePath) => {
   const content = fs.readFileSync(filePath, "utf8");
   Papa.parse(content, {
     skipEmptyLines: true,
@@ -73,8 +73,8 @@ const readAndPrepareRecord = (filePath) => {
       // console.log('CSV parsed: ', results.errors)
       rows = results.data
       let indexRow = 0
-      console.log(rows[rows.length - 1].TimeStamp)
-      console.log(rows[0].TimeStamp)
+      //console.log(rows[rows.length - 1].TimeStamp)
+      //console.log(rows[0].TimeStamp)
       let readingInterval = dateDiff(rows[rows.length - 1].TimeStamp, rows[0].TimeStamp)/rows.length
       console.log(`Reading interval set to: ${readingInterval}`)
       clearInterval(intervalPlayback)
@@ -132,7 +132,7 @@ router.post('/uploadFile', koaBody({multipart: true, uploadDir: '/tmp'}), async 
           fs.copySync(path, `public/muse/${name}`)
           fs.copySync(path, `public/muse/muse.csv`)
           ctx.body = {fileUpload:'ok', url: '/muse/muse.csv', original: `/muse/${name}`}
-          readAndPrepareRecord(path)
+          //readAndPrepareRecord(path)
         } else {
           if (type !== 'text/csv') {
             console.error('le fichier n\'est pas au bon format')
@@ -412,6 +412,10 @@ const adjustSpeed = (speed) => {
   })
   httpServer.listen(httpPort)
   console.log(`http status running on : http://${localIp}:${httpPort}`)
+  if (settings.getSettings().playback) {
+    console.log('Reve quantique is in playback mode')
+    readAndPlayRecord('./public/muse/muse.csv')
+  }
 })()
 process.stdin.resume()
 
