@@ -1,0 +1,65 @@
+{
+  "playback": true,
+  "paintings": [
+    {
+      "name": "reve-minus-5",
+      "min": -1,
+      "max": -0.8,
+      "speed": -20
+    },
+    {
+      "name": "reve-minus-4",
+      "min": -0.85,
+      "max": -0.55,
+      "speed": -11
+    },
+    {
+      "name": "reve-minus-3",
+      "min": -0.54,
+      "max": -0.4,
+      "speed": 0
+    },
+    {
+      "name": "reve-minus-2",
+      "min": -0.41,
+      "max": -0.2,
+      "speed": -11
+    },
+    {
+      "name": "reve-minus-1",
+      "min": -0.25,
+      "max": -0.001,
+      "speed": -9
+    },
+    {
+      "name": "reve-plus-1",
+      "min": 0.001,
+      "max": 0.2,
+      "speed": 9
+    },
+    {
+      "name": "reve-plus-2",
+      "min": 0.25,
+      "max": 0.4,
+      "speed": 14
+    },
+    {
+      "name": "reve-plus-3",
+      "min": 0.45,
+      "max": 0.6,
+      "speed": 16
+    },
+    {
+      "name": "reve-plus-4",
+      "min": 0.65,
+      "max": 0.8,
+      "speed": 12
+    },
+    {
+      "name": "reve-plus-5",
+      "min": 0.85,
+      "max": 1,
+      "speed": 20
+    }
+  ]
+}

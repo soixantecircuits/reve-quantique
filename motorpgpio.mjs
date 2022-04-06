@@ -58,4 +58,8 @@ const stopSync = () => {
   motorDOWN.digitalWrite(LOW)
 }
 
-export {initMotor, setFrequency, setRange, setSpeedSync, runSync, runForward, runBackward, stopSync}
+const terminateGPIO = () => {
+  pigpio.terminate()
+}
+
+export {initMotor, setFrequency, setRange, setSpeedSync, runSync, runForward, runBackward, stopSync, terminateGPIO}

@@ -24,7 +24,7 @@ const windowSize = 30
  const motorHat = {}
 // const motorHat = null
 const BufferWave = new ArrayLimited(windowSize)
-import {initMotor, setFrequency, setRange, setSpeedSync, runSync, runForward, runBackward, stopSync} from './motorpgpio.mjs'
+import {initMotor, setFrequency, setRange, setSpeedSync, runSync, runForward, runBackward, stopSync, terminateGPIO} from './motorpgpio.mjs'
 const wlan0Interface = address.interface('IPv4', 'wlan0')
 const __dirname = path.resolve()
 const publicPath = `${__dirname}/public/`
@@ -339,7 +339,7 @@ const adjustSpeed = (speed) => {
       initMotor(23, 24, 25, 12500)
     } catch (err) {
       console.error('An error occured while trying to control the motor')
-      consoele.error(error)
+      console.error(err)
     }
   } else {
     console.warn('!! no motor available !!')
@@ -424,6 +424,7 @@ function exitHandler (options, exitCode) {
     console.log('reve quantique stop')
     //motorHat.dcs[0].stopSync()
     stopSync()
+    terminateGPIO()
   } else {
     console.log('reve quantique stop / no motor')
   }
