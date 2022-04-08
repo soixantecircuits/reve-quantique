@@ -109,7 +109,7 @@ Enable at start
 
 ## logging removal
 
-````
+```
 sudo service rsyslog stop
 ```
 
@@ -124,5 +124,43 @@ to enable it again at boot:
 ```
 sudo systemctl enable rsyslog
 ```
+
+
+## Configuration
+
+```
+df -h
+du -s * | sort -nr
+truncate daemon.log --size 0
+rm syslog.1
+truncate syslog --size 0
+service rsyslog stop
+systemctl disable rsyslog
+vim /lib/systemd/system/reve_quantique.service
+```
+
+```
+[Service]
+StandardOutput=null
+```
+
+```
+systemctl daemon-reload
+systemctl restart reve_quantique.service
+systemctl status reve_quantique.service
+journalctl -fu reve_quantique.service
+```
+
+to enable it again at boot:
+
+```
+sudo systemctl enable rsyslog
+```
+
+```
+[Service]
+#StandardOutput=null
+```
+
 
 
