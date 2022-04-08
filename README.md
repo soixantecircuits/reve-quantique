@@ -107,5 +107,22 @@ Adding service to systemd
 Enable at start
 `systemctl enable reve_quantique.service`
 
+## logging removal
+
+````
+sudo service rsyslog stop
+```
+
+Then, you can disable it at boot:
+
+```
+sudo systemctl disable rsyslog
+```
+
+to enable it again at boot:
+
+```
+sudo systemctl enable rsyslog
+```
 
 
