@@ -4,6 +4,13 @@
 
 ## Information
 
+- For uploading a file for playback: http://10.9.8.1:9090/
+
+- For testing: http://10.9.8.1:8090/
+
+- For status: http://10.9.8.1:8090/status/osc
+
+
 ## ⚠️ 
 
 Please keep `const motorHat = {}` as en empty object. If you need to run the code without a raspberry pi please comment `motorHat` line definition and comment `import MotorHat from 'motor-hat'`. Then uncomment both lines : 
