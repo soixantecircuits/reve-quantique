@@ -39,7 +39,9 @@ is the name for a specific speed. `getSpeedPerRange` returns a `speed`.
 
 The set of `painting/tableau` is described like this :
 
-```const paintings = [{
+```
+
+const paintings = [{
   name: 'reve-1',
   min: -1, 
   max: -0.8,
