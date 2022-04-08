@@ -4,11 +4,16 @@
 
 ## Information
 
-- For uploading a file for playback: http://10.9.8.1:9090/
+- For uploading a file and testing: http://10.9.8.1:8090/
 
-- For testing: http://10.9.8.1:8090/
+- For configuring and changing playback mode: http://10.9.8.1:9090/
 
 - For status: http://10.9.8.1:8090/status/osc
+
+Connect your OSC app : 
+
+    - target ip : 10.9.8.1
+    - target port : 57121
 
 
 ## ⚠️ 
